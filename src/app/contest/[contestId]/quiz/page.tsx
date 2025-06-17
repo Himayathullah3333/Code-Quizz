@@ -10,7 +10,7 @@ import { LeaderboardTable } from '@/components/LeaderboardTable';
 import { QuizProgressBar } from '@/components/ProgressBar';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertTriangle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useRouter, useParams } from 'next/navigation';
 
 
@@ -42,6 +42,7 @@ export default function QuizPage() {
       if (username) {
         joinContest(currentContestId, username);
       } else {
+        // If username is null but trying to access a contest page, redirect home.
         router.push('/');
         return;
       }
@@ -55,14 +56,17 @@ export default function QuizPage() {
       // If status is login but no contest ID, means something is wrong, go home
       router.push('/');
     }
-
-
   }, [quizStatus, contestId, router, currentContestId, joinContest, username]);
 
 
-  if (quizStatus === 'LOGIN' || (!currentQuestion && quizStatus !== 'INTERIM_LEADERBOARD' && quizStatus !== 'QUIZ_COMPLETED')) {
+  if (quizStatus === 'LOGIN' || 
+      (!currentQuestion && 
+       quizStatus !== 'INTERIM_LEADERBOARD' && 
+       quizStatus !== 'QUIZ_COMPLETED' &&
+       quizStatus !== 'WAITING_FOR_OTHERS' && // Allow loading if waiting for others with no currentQ (should not happen ideally)
+       quizStatus !== 'ANSWER_FEEDBACK') // Allow loading if in feedback with no currentQ (should not happen ideally)
+      ) {
      if(quizStatus === 'LOGIN' && !currentContestId) {
-         // This case should be handled by useEffect redirecting to home, but as a safeguard
         return (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center">
             <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
@@ -73,7 +77,7 @@ export default function QuizPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-xl font-semibold text-muted-foreground">Loading quiz questions...</p>
+        <p className="text-xl font-semibold text-muted-foreground">Loading quiz...</p>
       </div>
     );
   }
@@ -82,7 +86,7 @@ export default function QuizPage() {
 
   return (
     <div className="flex flex-col items-center space-y-6 w-full">
-      {quizStatus !== 'INTERIM_LEADERBOARD' && quizStatus !== 'ANSWER_FEEDBACK' && currentQuestion && (
+      {quizStatus !== 'INTERIM_LEADERBOARD' && quizStatus !== 'ANSWER_FEEDBACK' && quizStatus !== 'WAITING_FOR_OTHERS' && currentQuestion && (
         <QuizProgressBar current={currentQuestionIndex} total={totalQuestions} />
       )}
 
@@ -101,6 +105,15 @@ export default function QuizPage() {
         </>
       )}
 
+      {quizStatus === 'WAITING_FOR_OTHERS' && (
+        <div className="flex flex-col items-center justify-center space-y-4 text-center p-8 bg-card rounded-lg shadow-xl animate-fadeIn min-h-[300px] w-full max-w-md">
+          <Loader2 className="h-16 w-16 animate-spin text-primary" />
+          <h2 className="text-3xl font-headline text-primary">Answer Submitted!</h2>
+          <p className="text-lg text-muted-foreground">Waiting for other players...</p>
+          <p className="text-sm text-muted-foreground">(Revealing result soon)</p>
+        </div>
+      )}
+
       {quizStatus === 'ANSWER_FEEDBACK' && (
         <AnswerFeedback
           isCorrect={isCurrentAnswerCorrect}
@@ -116,13 +129,13 @@ export default function QuizPage() {
           </DialogHeader>
           <div className="p-6 pt-2">
             <LeaderboardTable participants={participants} currentUserUsername={username} title="" />
-            <p className="text-xs text-muted-foreground text-center mt-2">Next question coming up...</p>
+            <DialogDescription className="text-xs text-muted-foreground text-center mt-2">Next question coming up...</DialogDescription>
           </div>
         </DialogContent>
       </Dialog>
 
       {quizStatus === 'QUIZ_COMPLETED' && (
-         <div className="text-center space-y-4 p-8 bg-card rounded-lg shadow-xl">
+         <div className="text-center space-y-4 p-8 bg-card rounded-lg shadow-xl animate-fadeIn">
             <h2 className="text-3xl font-headline text-primary">Quiz Finished!</h2>
             <p className="text-lg text-muted-foreground">Calculating your final results...</p>
             <Loader2 className="h-10 w-10 animate-spin text-accent mx-auto" />

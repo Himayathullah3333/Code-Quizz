@@ -9,6 +9,7 @@ import { mockContest, mockParticipants as initialMockParticipants } from '@/lib/
 import { useToast } from '@/hooks/use-toast';
 
 const QUESTION_TIME_LIMIT = 20; // seconds
+const WAITING_FOR_OTHERS_DURATION = 3000; // milliseconds, e.g., 3 seconds
 const FEEDBACK_DURATION = 3000; // milliseconds
 const INTERIM_LEADERBOARD_DURATION = 3000; // milliseconds
 const POINTS_PER_CORRECT_ANSWER = 100;
@@ -17,6 +18,7 @@ type QuizStatus =
   | 'LOGIN'
   | 'WAITING_ROOM'
   | 'QUESTION_DISPLAY'
+  | 'WAITING_FOR_OTHERS' // New status
   | 'ANSWER_FEEDBACK'
   | 'INTERIM_LEADERBOARD'
   | 'QUIZ_COMPLETED';
@@ -39,10 +41,9 @@ interface QuizContextType {
 
   setUserNameAndCode: (name: string, code: string) => void;
   joinContest: (code: string, userNameToJoin: string) => void;
-  startQuizForUser: () => void; // Simulates admin starting or user proceeding
+  startQuizForUser: () => void;
   selectOption: (optionIndex: number) => void;
   submitAnswer: () => void;
-  proceedToNextPhase: () => void; // Handles transitions after feedback/interim leaderboard
   resetQuiz: () => void;
   QUESTION_TIME_LIMIT: number;
 }
@@ -70,13 +71,14 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
   const currentQuestion = currentContest?.questions[currentQuestionIndex] || null;
   const totalQuestions = currentContest?.questions.length || 0;
 
-  const submitAnswer = useCallback(() => {
+  const processAnswer = useCallback((isTimeout: boolean) => {
     if (!currentQuestion) return;
 
     const correctAnswerIdx = currentQuestion.correctAnswerIndex;
-    const isCorrect = selectedOptionIndex === correctAnswerIdx;
+    // For timeout, selectedOptionIndex could be null. If user click, it is not null.
+    const isCorrect = !isTimeout && selectedOptionIndex === correctAnswerIdx;
 
-    if (isCorrect) {
+    if (isCorrect) { // Only score if user actively got it right (not a timeout with no selection or wrong selection)
       setScore((prevScore) => prevScore + POINTS_PER_CORRECT_ANSWER);
       if (username) {
         setParticipants(prev => prev.map(p => p.username === username ? {...p, score: p.score + POINTS_PER_CORRECT_ANSWER} : p));
@@ -85,19 +87,26 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
     
     const answer: UserAnswer = {
       questionId: currentQuestion.id,
-      selectedOptionIndex,
+      selectedOptionIndex: isTimeout ? (selectedOptionIndex === null ? null : selectedOptionIndex) : selectedOptionIndex,
       isCorrect,
-      timeTaken: QUESTION_TIME_LIMIT - timeLeft, // timeLeft will be correct at the moment of submission
+      timeTaken: isTimeout ? QUESTION_TIME_LIMIT : (QUESTION_TIME_LIMIT - timeLeft),
     };
     setUserAnswers((prevAnswers) => [...prevAnswers, answer]);
 
     setIsCurrentAnswerCorrect(isCorrect);
     setCorrectAnswerForFeedback(currentQuestion.options[correctAnswerIdx]);
-    setQuizStatus('ANSWER_FEEDBACK');
-  }, [currentQuestion, selectedOptionIndex, username]); // Removed timeLeft from dependencies
+    setQuizStatus('WAITING_FOR_OTHERS');
+
+  }, [currentQuestion, selectedOptionIndex, username, timeLeft, QUESTION_TIME_LIMIT, setScore, setParticipants, setUserAnswers, setIsCurrentAnswerCorrect, setCorrectAnswerForFeedback, setQuizStatus]);
 
 
-  // Timer effect
+  const submitAnswer = useCallback(() => {
+    // This function is for user-initiated submit (button click)
+    processAnswer(false);
+  }, [processAnswer]);
+
+
+  // Timer effect for questions
   useEffect(() => {
     let timerId: NodeJS.Timeout;
     if (quizStatus === 'QUESTION_DISPLAY' && timeLeft > 0 && currentQuestion) {
@@ -105,47 +114,46 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
         setTimeLeft((prevTime) => prevTime - 1);
       }, 1000);
     } else if (quizStatus === 'QUESTION_DISPLAY' && timeLeft === 0 && currentQuestion) {
-      submitAnswer(); // Auto-submit when time is up
+      processAnswer(true); // Auto-submit on timeout
     }
     return () => clearInterval(timerId);
-  }, [quizStatus, timeLeft, currentQuestion, submitAnswer]);
+  }, [quizStatus, timeLeft, currentQuestion, processAnswer]);
 
 
-  const proceedToNextPhase = useCallback(() => {
-    if (quizStatus === 'ANSWER_FEEDBACK') {
-      if (currentQuestionIndex < totalQuestions -1 ) { 
-         setQuizStatus('INTERIM_LEADERBOARD');
-      } else { 
-        setQuizStatus('QUIZ_COMPLETED');
-        if (contestId) router.push(`/contest/${contestId}/leaderboard`);
-      }
-    } else if (quizStatus === 'INTERIM_LEADERBOARD') {
-      if (currentQuestionIndex < totalQuestions - 1) {
-        setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-        setTimeLeft(QUESTION_TIME_LIMIT);
-        setSelectedOptionIndex(null);
-        setIsCurrentAnswerCorrect(null);
-        setCorrectAnswerForFeedback(null);
-        setQuizStatus('QUESTION_DISPLAY');
-      } else {
-        setQuizStatus('QUIZ_COMPLETED');
-        if (contestId) router.push(`/contest/${contestId}/leaderboard`);
-      }
-    }
-  }, [quizStatus, currentQuestionIndex, totalQuestions, contestId, router]);
-
-
-  // Auto-proceed effect
+  // Auto-proceed effect for WAITING_FOR_OTHERS, ANSWER_FEEDBACK, INTERIM_LEADERBOARD
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    if (quizStatus === 'ANSWER_FEEDBACK' || quizStatus === 'INTERIM_LEADERBOARD') {
-      const duration = quizStatus === 'ANSWER_FEEDBACK' ? FEEDBACK_DURATION : INTERIM_LEADERBOARD_DURATION;
+
+    if (quizStatus === 'WAITING_FOR_OTHERS') {
       timeoutId = setTimeout(() => {
-        proceedToNextPhase();
-      }, duration);
+        setQuizStatus('ANSWER_FEEDBACK');
+      }, WAITING_FOR_OTHERS_DURATION);
+    } else if (quizStatus === 'ANSWER_FEEDBACK') {
+      timeoutId = setTimeout(() => {
+        if (currentQuestionIndex < totalQuestions - 1) {
+          setQuizStatus('INTERIM_LEADERBOARD');
+        } else {
+          setQuizStatus('QUIZ_COMPLETED');
+          if (contestId) router.push(`/contest/${contestId}/leaderboard`);
+        }
+      }, FEEDBACK_DURATION);
+    } else if (quizStatus === 'INTERIM_LEADERBOARD') {
+      timeoutId = setTimeout(() => {
+        if (currentQuestionIndex < totalQuestions - 1) {
+          setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+          setTimeLeft(QUESTION_TIME_LIMIT);
+          setSelectedOptionIndex(null);
+          setIsCurrentAnswerCorrect(null); // Reset for next question
+          setCorrectAnswerForFeedback(null); // Reset for next question
+          setQuizStatus('QUESTION_DISPLAY');
+        } else {
+          setQuizStatus('QUIZ_COMPLETED');
+          if (contestId) router.push(`/contest/${contestId}/leaderboard`);
+        }
+      }, INTERIM_LEADERBOARD_DURATION);
     }
     return () => clearTimeout(timeoutId);
-  }, [quizStatus, currentQuestionIndex, proceedToNextPhase]);
+  }, [quizStatus, currentQuestionIndex, totalQuestions, contestId, router, setCurrentQuestionIndex, setTimeLeft, setSelectedOptionIndex, setIsCurrentAnswerCorrect, setCorrectAnswerForFeedback, setQuizStatus]);
 
 
   const joinContest = useCallback((code: string, userNameToJoin: string) => {
@@ -154,24 +162,25 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
         router.push('/');
         return;
     }
-    if (code === mockContest.id) {
-      setContestIdState(code);
+    const trimmedCode = code.trim(); // Trim code here as well
+    if (trimmedCode === mockContest.id) {
+      setContestIdState(trimmedCode);
       setCurrentContest(mockContest);
       if (!participants.find(p => p.username === userNameToJoin)) {
         const newUser: Participant = { id: `user-${Date.now()}`, username: userNameToJoin, score: 0 };
         setParticipants(prev => [...prev, newUser]);
       }
       setQuizStatus('WAITING_ROOM');
-      router.push(`/contest/${code}/waiting`);
+      router.push(`/contest/${trimmedCode}/waiting`);
     } else {
       toast({ title: "Error", description: "Invalid contest code.", variant: "destructive" });
       setContestIdState(null); 
       setCurrentContest(null);
-      if(params?.contestId) {
+      if(params?.contestId) { // If user was on a contest page with wrong code, redirect home
         router.push('/');
       }
     }
-  }, [router, participants, toast, params?.contestId]);
+  }, [router, participants, toast, params?.contestId, setContestIdState, setCurrentContest, setParticipants, setQuizStatus]);
 
   const setUserNameAndCode = (name: string, code: string) => {
     if (!name.trim()) {
@@ -183,7 +192,7 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setUsernameState(name);
-    joinContest(code, name); 
+    joinContest(code.trim(), name); 
   };
   
 
@@ -192,13 +201,19 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
       setQuizStatus('QUESTION_DISPLAY');
       setCurrentQuestionIndex(0);
       setUserAnswers([]);
-      setScore(0);
+      setScore(0); // Reset score for this user for this attempt
       setTimeLeft(QUESTION_TIME_LIMIT);
       setSelectedOptionIndex(null);
+      setIsCurrentAnswerCorrect(null);
+      setCorrectAnswerForFeedback(null);
+      
+      // Reset score in participants list for the current user
       if (username) {
         setParticipants(prev => 
           prev.map(p => p.username === username ? { ...p, score: 0 } : p)
         );
+      } else { // If for some reason username is not set, reset all scores (safer for dev)
+         setParticipants(initialMockParticipants.map(p => ({...p, score: 0})));
       }
 
       router.push(`/contest/${contestId}/quiz`);
@@ -216,7 +231,7 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
     setUsernameState(null);
     setContestIdState(null);
     setCurrentContest(null);
-    setParticipants(initialMockParticipants.map(p => ({...p, score: 0}))); // Reset scores
+    setParticipants(initialMockParticipants.map(p => ({...p, score: 0})));
     setCurrentQuestionIndex(0);
     setUserAnswers([]);
     setScore(0);
@@ -230,7 +245,8 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
   
    useEffect(() => {
     const pathContestId = Array.isArray(params?.contestId) ? params.contestId[0] : params?.contestId;
-    if (pathContestId && username && !contestId && quizStatus === 'LOGIN') {
+    // Only attempt to join if not already in a contest or if contestId mismatches
+    if (pathContestId && username && (!contestId || contestId !== pathContestId) && quizStatus === 'LOGIN') {
       joinContest(pathContestId as string, username);
     }
   }, [params, contestId, username, quizStatus, joinContest]);
@@ -258,7 +274,6 @@ export const QuizProvider = ({ children }: { children: ReactNode }) => {
         startQuizForUser,
         selectOption,
         submitAnswer,
-        proceedToNextPhase,
         resetQuiz,
         QUESTION_TIME_LIMIT
       }}
@@ -275,4 +290,3 @@ export const useQuiz = (): QuizContextType => {
   }
   return context;
 };
-
