@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -11,7 +12,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        headline: ['Space Grotesk', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -44,6 +45,10 @@ export default {
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -88,10 +93,20 @@ export default {
             height: '0',
           },
         },
+        'pulse-correct': {
+          '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 hsl(var(--success) / 0.7)' },
+          '50%': { transform: 'scale(1.05)', boxShadow: '0 0 0 10px hsl(var(--success) / 0)' },
+        },
+        'pulse-incorrect': {
+          '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 hsl(var(--destructive) / 0.7)' },
+          '50%': { transform: 'scale(1.05)', boxShadow: '0 0 0 10px hsl(var(--destructive) / 0)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'pulse-correct': 'pulse-correct 1.5s ease-out',
+        'pulse-incorrect': 'pulse-incorrect 1.5s ease-out',
       },
     },
   },

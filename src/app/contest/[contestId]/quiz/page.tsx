@@ -1,0 +1,120 @@
+"use client";
+
+import { useEffect } from 'react';
+import { useQuiz } from '@/contexts/QuizContext';
+import { QuestionCard } from '@/components/QuestionCard';
+import { Timer } from '@/components/Timer';
+import { AnswerFeedback } from '@/components/AnswerFeedback';
+import { LeaderboardTable } from '@/components/LeaderboardTable';
+import { QuizProgressBar } from '@/components/ProgressBar';
+import { Button } from '@/components/ui/button';
+import { Loader2, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useRouter, useParams } from 'next/navigation';
+
+
+export default function QuizPage() {
+  const {
+    quizStatus,
+    currentQuestion,
+    currentQuestionIndex,
+    totalQuestions,
+    timeLeft,
+    selectedOptionIndex,
+    selectOption,
+    submitAnswer,
+    isCurrentAnswerCorrect,
+    correctAnswerForFeedback,
+    participants,
+    username,
+    QUESTION_TIME_LIMIT, // Assuming this constant is exposed or use mockData
+    contestId,
+    joinContest
+  } = useQuiz();
+
+  const router = useRouter();
+  const params = useParams();
+  const currentContestId = Array.isArray(params.contestId) ? params.contestId[0] : params.contestId;
+
+  useEffect(() => {
+     if (quizStatus === 'LOGIN' && currentContestId) {
+      if (username) {
+        joinContest(currentContestId);
+      } else {
+        router.push('/');
+        return;
+      }
+    }
+
+    if (quizStatus === 'QUIZ_COMPLETED' && contestId) {
+      router.push(`/contest/${contestId}/leaderboard`);
+    } else if (quizStatus === 'WAITING_ROOM' && contestId) {
+      router.push(`/contest/${contestId}/waiting`);
+    }
+
+  }, [quizStatus, contestId, router, currentContestId, joinContest, username]);
+
+
+  if (quizStatus === 'LOGIN' || (!currentQuestion && quizStatus !== 'INTERIM_LEADERBOARD' && quizStatus !== 'QUIZ_COMPLETED')) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-xl font-semibold text-muted-foreground">Loading quiz questions...</p>
+      </div>
+    );
+  }
+  
+  const selectedOptionText = currentQuestion && selectedOptionIndex !== null ? currentQuestion.options[selectedOptionIndex] : null;
+
+  return (
+    <div className="flex flex-col items-center space-y-6 w-full">
+      {quizStatus !== 'INTERIM_LEADERBOARD' && quizStatus !== 'ANSWER_FEEDBACK' && currentQuestion && (
+        <QuizProgressBar current={currentQuestionIndex} total={totalQuestions} />
+      )}
+
+      {quizStatus === 'QUESTION_DISPLAY' && currentQuestion && (
+        <>
+          <Timer initialTime={QUESTION_TIME_LIMIT || 20} currentTime={timeLeft} isActive={true} />
+          <QuestionCard
+            question={currentQuestion}
+            questionNumber={currentQuestionIndex + 1}
+            totalQuestions={totalQuestions}
+            selectedOptionIndex={selectedOptionIndex}
+            onSelectOption={selectOption}
+            onSubmitAnswer={submitAnswer}
+            isSubmitting={false} // Can be enhanced if submission is async
+          />
+        </>
+      )}
+
+      {quizStatus === 'ANSWER_FEEDBACK' && (
+        <AnswerFeedback
+          isCorrect={isCurrentAnswerCorrect}
+          correctAnswer={correctAnswerForFeedback}
+          selectedAnswerText={selectedOptionText}
+        />
+      )}
+      
+      <Dialog open={quizStatus === 'INTERIM_LEADERBOARD'} onOpenChange={() => { /* Managed by context auto-transition */ }}>
+        <DialogContent className="sm:max-w-[625px] p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="font-headline text-2xl text-center text-primary">Quick Peek: Standings</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 pt-2">
+            <LeaderboardTable participants={participants} currentUserUsername={username} title="" />
+            <p className="text-xs text-muted-foreground text-center mt-2">Next question coming up...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {quizStatus === 'QUIZ_COMPLETED' && (
+         <div className="text-center space-y-4 p-8 bg-card rounded-lg shadow-xl">
+            <h2 className="text-3xl font-headline text-primary">Quiz Finished!</h2>
+            <p className="text-lg text-muted-foreground">Calculating your final results...</p>
+            <Loader2 className="h-10 w-10 animate-spin text-accent mx-auto" />
+        </div>
+      )}
+
+    </div>
+  );
+}
