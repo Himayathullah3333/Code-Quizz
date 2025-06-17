@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -18,20 +19,21 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     if (quizStatus === 'LOGIN' && currentContestId) {
-      if (username) { // If username exists from a previous session, try to rejoin
-        joinContest(currentContestId);
-      } else { // If no username, redirect to login to start fresh
+      if (username) { 
+        joinContest(currentContestId, username);
+      } else { 
         router.push('/');
         return;
       }
     }
-    // If quiz is not completed and user lands here, redirect appropriately
+    
     if (quizStatus !== 'QUIZ_COMPLETED' && quizStatus !== 'LOGIN') {
       if (contestId) {
         if (quizStatus === 'WAITING_ROOM') router.push(`/contest/${contestId}/waiting`);
-        else router.push(`/contest/${contestId}/quiz`);
+        else if (quizStatus === 'QUESTION_DISPLAY' || quizStatus === 'ANSWER_FEEDBACK' || quizStatus === 'INTERIM_LEADERBOARD' ) router.push(`/contest/${contestId}/quiz`);
+        else router.push('/'); // Should not happen, but fallback
       } else {
-         router.push('/'); // Fallback to home if no contestId
+         router.push('/'); 
       }
     }
   }, [quizStatus, contestId, router, currentContestId, joinContest, username]);
@@ -49,8 +51,9 @@ export default function LeaderboardPage() {
       );
   }
 
-  const currentUser = participants.find(p => p.username === username);
-  const userRank = currentUser ? participants.sort((a,b) => b.score - a.score).findIndex(p => p.id === currentUser.id) + 1 : null;
+  const sortedParticipants = [...participants].sort((a, b) => b.score - a.score);
+  const currentUserDetails = sortedParticipants.find(p => p.username === username);
+  const userRank = currentUserDetails ? sortedParticipants.findIndex(p => p.id === currentUserDetails.id) + 1 : null;
 
   const handleShare = () => {
     if (navigator.share) {
@@ -60,7 +63,6 @@ export default function LeaderboardPage() {
         url: window.location.href,
       }).catch(console.error);
     } else {
-      // Fallback for browsers that don't support navigator.share
       alert("Share this page URL with your friends!");
     }
   };
@@ -70,7 +72,7 @@ export default function LeaderboardPage() {
       <Card className="w-full max-w-2xl text-center shadow-xl">
          <CardHeader>
           <CardTitle className="font-headline text-4xl text-accent">Quiz Complete!</CardTitle>
-          {currentUser && (
+          {currentUserDetails && (
             <CardDescription className="text-xl pt-2">
               Well done, <span className="font-semibold text-primary">{username}</span>! You scored <span className="font-bold text-accent">{score}</span> points.
               {userRank && (
@@ -80,7 +82,7 @@ export default function LeaderboardPage() {
           )}
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
-           <LeaderboardTable participants={participants} currentUserUsername={username} isFinal={true} title="Final Rankings" />
+           <LeaderboardTable participants={sortedParticipants} currentUserUsername={username} isFinal={true} title="Final Rankings" />
         </CardContent>
       </Card>
 

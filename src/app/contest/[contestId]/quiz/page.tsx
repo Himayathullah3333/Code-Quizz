@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -27,7 +28,7 @@ export default function QuizPage() {
     correctAnswerForFeedback,
     participants,
     username,
-    QUESTION_TIME_LIMIT, // Assuming this constant is exposed or use mockData
+    QUESTION_TIME_LIMIT,
     contestId,
     joinContest
   } = useQuiz();
@@ -39,7 +40,7 @@ export default function QuizPage() {
   useEffect(() => {
      if (quizStatus === 'LOGIN' && currentContestId) {
       if (username) {
-        joinContest(currentContestId);
+        joinContest(currentContestId, username);
       } else {
         router.push('/');
         return;
@@ -50,12 +51,25 @@ export default function QuizPage() {
       router.push(`/contest/${contestId}/leaderboard`);
     } else if (quizStatus === 'WAITING_ROOM' && contestId) {
       router.push(`/contest/${contestId}/waiting`);
+    } else if (quizStatus === 'LOGIN' && !currentContestId) {
+      // If status is login but no contest ID, means something is wrong, go home
+      router.push('/');
     }
+
 
   }, [quizStatus, contestId, router, currentContestId, joinContest, username]);
 
 
   if (quizStatus === 'LOGIN' || (!currentQuestion && quizStatus !== 'INTERIM_LEADERBOARD' && quizStatus !== 'QUIZ_COMPLETED')) {
+     if(quizStatus === 'LOGIN' && !currentContestId) {
+         // This case should be handled by useEffect redirecting to home, but as a safeguard
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center">
+            <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+            <p className="text-xl font-semibold text-muted-foreground">No contest specified. Redirecting...</p>
+          </div>
+        );
+    }
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -82,7 +96,7 @@ export default function QuizPage() {
             selectedOptionIndex={selectedOptionIndex}
             onSelectOption={selectOption}
             onSubmitAnswer={submitAnswer}
-            isSubmitting={false} // Can be enhanced if submission is async
+            isSubmitting={false} 
           />
         </>
       )}

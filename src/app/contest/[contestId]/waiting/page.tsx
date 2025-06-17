@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -17,46 +18,40 @@ export default function WaitingRoomPage() {
 
   useEffect(() => {
     if (quizStatus === 'LOGIN' && currentContestId) {
-      // This attempts to rejoin if user lands here directly with a contestId but context is not initialized
-      // A more robust solution would involve persisting username or prompting for it.
-      // For now, if username is missing, it might not work as expected.
-      // Let's assume if user is here, they should have username or context will redirect.
       if (username) {
-        joinContest(currentContestId);
+        joinContest(currentContestId, username);
       } else {
-        // If username is not in context, redirect to login.
         router.push('/');
         return;
       }
     }
     
     if (quizStatus !== 'WAITING_ROOM' && quizStatus !== 'LOGIN') {
-       // If quiz is active or completed, redirect appropriately
       if (quizStatus === 'QUESTION_DISPLAY' || quizStatus === 'ANSWER_FEEDBACK' || quizStatus === 'INTERIM_LEADERBOARD') {
-        router.push(`/contest/${contestId}/quiz`);
+        if(contestId) router.push(`/contest/${contestId}/quiz`);
+        else router.push('/'); // Fallback if contestId somehow lost
       } else if (quizStatus === 'QUIZ_COMPLETED') {
-        router.push(`/contest/${contestId}/leaderboard`);
+         if(contestId) router.push(`/contest/${contestId}/leaderboard`);
+         else router.push('/'); // Fallback
       }
     }
   }, [quizStatus, contestId, router, currentContestId, joinContest, username]);
 
 
-  if (quizStatus === 'LOGIN' && !username) {
-     // Still loading or redirecting
+  if (quizStatus === 'LOGIN' && !username && currentContestId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-xl font-semibold text-muted-foreground">Loading contest...</p>
+        <p className="text-xl font-semibold text-muted-foreground">Joining contest...</p>
       </div>
     );
   }
   
   if (quizStatus !== 'WAITING_ROOM') {
-    // Should be handled by useEffect, but as a fallback:
      return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-xl font-semibold text-muted-foreground">Redirecting...</p>
+        <p className="text-xl font-semibold text-muted-foreground">Loading...</p>
       </div>
     );
   }
@@ -68,6 +63,7 @@ export default function WaitingRoomPage() {
           <CardTitle className="font-headline text-3xl text-primary">Contest Waiting Room</CardTitle>
           <CardDescription className="text-lg">
             Welcome, <span className="font-semibold text-accent">{username}</span>!
+            <br /> Contest Code: <span className="font-mono text-sm bg-muted p-1 rounded">{contestId}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -80,7 +76,6 @@ export default function WaitingRoomPage() {
           
           <ParticipantList participants={participants} currentUserUsername={username} />
           
-          {/* This button is for development/simulation purposes */}
           <Button 
             onClick={startQuizForUser} 
             size="lg" 
