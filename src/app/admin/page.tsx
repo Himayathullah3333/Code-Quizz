@@ -3,12 +3,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Play, Square, Edit2, Trash2 } from 'lucide-react';
+import { PlusCircle, Play, Square, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data - in a real app, this would come from an API or state management
-const mockContests = [
+interface ContestEntry {
+  id: string;
+  code: string;
+  status: "pending" | "active" | "finished";
+  created: string;
+}
+
+const initialContests: ContestEntry[] = [
   {
     code: "3PHGAM",
     status: "pending",
@@ -29,15 +37,55 @@ const mockQuestions = [
     text: "Which planet is known as the Red Planet?",
     answer: "Mars",
   },
-  // Add more mock questions if needed
 ];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [contests, setContests] = useState<ContestEntry[]>(initialContests);
 
   const handleLogout = () => {
-    // Add any logout logic here (e.g., clearing session)
     router.push('/');
+  };
+
+  const handleStartContest = (contestId: string) => {
+    setContests(prevContests =>
+      prevContests.map(c =>
+        c.id === contestId ? { ...c, status: 'active' } : c
+      )
+    );
+    const contest = contests.find(c => c.id === contestId);
+    console.log(`Admin started contest: ${contest?.code}`);
+    toast({
+      title: "Contest Started",
+      description: `Contest ${contest?.code} is now active.`,
+      variant: "default",
+      duration: 3000,
+    });
+  };
+
+  const handleStopContest = (contestId: string) => {
+    setContests(prevContests =>
+      prevContests.map(c =>
+        c.id === contestId ? { ...c, status: 'finished' } : c
+      )
+    );
+    const contest = contests.find(c => c.id === contestId);
+    console.log(`Admin stopped contest: ${contest?.code}`);
+    toast({
+      title: "Contest Finished",
+      description: `Contest ${contest?.code} has been marked as finished.`,
+      variant: "default",
+      duration: 3000,
+    });
+  };
+
+
+  const getStatusColor = (status: ContestEntry["status"]) => {
+    if (status === 'active') return 'text-success';
+    if (status === 'pending') return 'text-yellow-600';
+    if (status === 'finished') return 'text-muted-foreground';
+    return '';
   };
 
   return (
@@ -51,7 +99,6 @@ export default function AdminDashboardPage() {
         </Button>
       </div>
 
-      {/* Contest Management Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold font-headline text-primary">Contest Management</CardTitle>
@@ -64,20 +111,36 @@ export default function AdminDashboardPage() {
             </Button>
           </Link>
           
-          {mockContests.length > 0 ? (
+          {contests.length > 0 ? (
             <div className="space-y-3">
-              {mockContests.map((contest) => (
+              {contests.map((contest) => (
                 <div key={contest.id} className="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-card hover:shadow-md transition-shadow">
                   <div>
                     <p className="font-semibold text-lg">Code: <span className="font-mono text-accent">{contest.code}</span></p>
-                    <p className="text-sm text-muted-foreground">Status: <span className={contest.status === 'pending' ? 'text-yellow-600' : 'text-green-600'}>{contest.status}</span></p>
+                    <p className={`text-sm font-medium ${getStatusColor(contest.status)}`}>
+                      Status: <span className="capitalize">{contest.status}</span>
+                    </p>
                     <p className="text-sm text-muted-foreground">Created: {contest.created}</p>
                   </div>
                   <div className="flex space-x-2 mt-2 sm:mt-0">
-                    <Button variant="ghost" size="icon" className="text-success hover:bg-success/10 hover:text-success" aria-label="Start contest">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-success hover:bg-success/10 hover:text-success disabled:text-muted-foreground disabled:hover:bg-transparent" 
+                      aria-label="Start contest"
+                      onClick={() => handleStartContest(contest.id)}
+                      disabled={contest.status !== 'pending'}
+                    >
                       <Play className="h-5 w-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive" aria-label="Stop contest">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive disabled:text-muted-foreground disabled:hover:bg-transparent" 
+                      aria-label="Stop contest"
+                      onClick={() => handleStopContest(contest.id)}
+                      disabled={contest.status !== 'active'}
+                    >
                       <Square className="h-5 w-5" />
                     </Button>
                   </div>
@@ -90,7 +153,6 @@ export default function AdminDashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Question Management Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold font-headline text-primary">Question Management</CardTitle>
@@ -128,3 +190,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
