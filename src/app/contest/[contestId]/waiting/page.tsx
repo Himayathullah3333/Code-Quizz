@@ -8,13 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, PlayCircle } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+
+const LOCAL_STORAGE_ADMIN_STATUS_PREFIX = "quizmaster-contest-";
 
 export default function WaitingRoomPage() {
   const { username, contestId, participants, startQuizForUser, quizStatus, joinContest } = useQuiz();
   const router = useRouter();
   const params = useParams();
+  const { toast } = useToast();
   const currentContestId = Array.isArray(params.contestId) ? params.contestId[0] : params.contestId;
-
 
   useEffect(() => {
     if (quizStatus === 'LOGIN' && currentContestId) {
@@ -29,13 +32,41 @@ export default function WaitingRoomPage() {
     if (quizStatus !== 'WAITING_ROOM' && quizStatus !== 'LOGIN') {
       if (quizStatus === 'QUESTION_DISPLAY' || quizStatus === 'ANSWER_FEEDBACK' || quizStatus === 'INTERIM_LEADERBOARD') {
         if(contestId) router.push(`/contest/${contestId}/quiz`);
-        else router.push('/'); // Fallback if contestId somehow lost
+        else router.push('/'); 
       } else if (quizStatus === 'QUIZ_COMPLETED') {
          if(contestId) router.push(`/contest/${contestId}/leaderboard`);
-         else router.push('/'); // Fallback
+         else router.push('/'); 
       }
     }
   }, [quizStatus, contestId, router, currentContestId, joinContest, username]);
+
+  useEffect(() => {
+    const adminStatusKey = `${LOCAL_STORAGE_ADMIN_STATUS_PREFIX}${currentContestId}-adminStatus`;
+
+    const checkAdminStatusAndStart = () => {
+      const adminStatus = localStorage.getItem(adminStatusKey);
+      if (adminStatus === 'active' && quizStatus === 'WAITING_ROOM') {
+        if (username && contestId === currentContestId) {
+          toast({ title: "Admin Started Quiz!", description: "Let's begin!", variant: "default" });
+          startQuizForUser();
+        }
+      }
+    };
+
+    // Check on mount
+    checkAdminStatusAndStart();
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === adminStatusKey && event.newValue === 'active') {
+        checkAdminStatusAndStart();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [currentContestId, quizStatus, startQuizForUser, username, contestId, toast]);
 
 
   if (quizStatus === 'LOGIN' && !username && currentContestId) {

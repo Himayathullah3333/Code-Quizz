@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Play, Square, Edit3, Trash2, BarChart3, Users } from 'lucide-react';
+import { PlusCircle, Play, Square, Edit3, Trash2, BarChart3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -33,7 +33,7 @@ interface ContestEntry {
 
 const initialContests: ContestEntry[] = [
   {
-    id: "contest-1",
+    id: "CONTEST123", // Ensure this matches mockContest.id for localStorage key consistency
     name: "Tech Trivia Night",
     code: "3PHGAM",
     status: "pending",
@@ -58,6 +58,8 @@ const initialContests: ContestEntry[] = [
   },
 ];
 
+const LOCAL_STORAGE_ADMIN_STATUS_PREFIX = "quizmaster-contest-";
+
 export default function AdminContestsPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -66,13 +68,14 @@ export default function AdminContestsPage() {
   const handleStartContest = (contestId: string) => {
     setContests(prevContests =>
       prevContests.map(c =>
-        c.id === contestId ? { ...c, status: 'active', participantCount: c.participantCount || 5 } : c // Mock participant increase
+        c.id === contestId ? { ...c, status: 'active', participantCount: c.participantCount || 5 } : c 
       )
     );
     const contest = contests.find(c => c.id === contestId);
+    localStorage.setItem(`${LOCAL_STORAGE_ADMIN_STATUS_PREFIX}${contestId}-adminStatus`, 'active');
     toast({
       title: "Contest Started",
-      description: `Contest ${contest?.name} (${contest?.code}) is now active.`,
+      description: `Contest ${contest?.name} (${contest?.code}) is now active. Participants will be moved from the waiting room.`,
     });
   };
 
@@ -83,6 +86,7 @@ export default function AdminContestsPage() {
       )
     );
     const contest = contests.find(c => c.id === contestId);
+    localStorage.setItem(`${LOCAL_STORAGE_ADMIN_STATUS_PREFIX}${contestId}-adminStatus`, 'finished');
     toast({
       title: "Contest Finished",
       description: `Contest ${contest?.name} (${contest?.code}) has been marked as finished.`,
@@ -91,8 +95,8 @@ export default function AdminContestsPage() {
 
   const handleDeleteContest = (contestId: string) => {
     const contest = contests.find(c => c.id === contestId);
-    // In a real app, this would call an API
     setContests(prevContests => prevContests.filter(c => c.id !== contestId));
+    localStorage.removeItem(`${LOCAL_STORAGE_ADMIN_STATUS_PREFIX}${contestId}-adminStatus`);
     toast({
       title: "Contest Deleted",
       description: `Contest ${contest?.name} (${contest?.code}) has been deleted.`,
@@ -101,9 +105,9 @@ export default function AdminContestsPage() {
   };
 
   const getStatusBadgeVariant = (status: ContestEntry["status"]): "default" | "secondary" | "destructive" | "outline" => {
-    if (status === 'active') return 'default'; // Primary color for active
-    if (status === 'pending') return 'secondary'; // Muted for pending
-    if (status === 'finished') return 'outline'; // Outline for finished
+    if (status === 'active') return 'default'; 
+    if (status === 'pending') return 'secondary'; 
+    if (status === 'finished') return 'outline'; 
     return 'secondary';
   };
 
