@@ -2,192 +2,129 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Play, Square, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { Users, ListChecks, ClipboardEdit, SlidersHorizontal, ArrowRight } from 'lucide-react';
 
-interface ContestEntry {
-  id: string;
-  code: string;
-  status: "pending" | "active" | "finished";
-  created: string;
+interface StatCardProps {
+  title: string;
+  value: string;
+  icon: React.ElementType;
+  description: string;
+  link?: string;
+  linkText?: string;
 }
 
-const initialContests: ContestEntry[] = [
-  {
-    code: "3PHGAM",
-    status: "pending",
-    created: "6/5/2025, 5:26:49 PM",
-    id: "1",
-  },
-  // Add more mock contests if needed
-];
-
-const mockQuestions = [
-  {
-    id: "q1",
-    text: "What is the capital of France?",
-    answer: "Paris",
-  },
-  {
-    id: "q2",
-    text: "Which planet is known as the Red Planet?",
-    answer: "Mars",
-  },
-];
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, description, link, linkText }) => (
+  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+      <Icon className="h-5 w-5 text-primary" />
+    </CardHeader>
+    <CardContent className="flex-grow">
+      <div className="text-3xl font-bold text-primary font-headline">{value}</div>
+      <p className="text-xs text-muted-foreground pt-1">{description}</p>
+    </CardContent>
+    {link && linkText && (
+      <div className="p-4 pt-0 mt-auto">
+        <Link href={link} passHref>
+          <Button variant="outline" className="w-full group">
+            {linkText}
+            <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </Link>
+      </div>
+    )}
+  </Card>
+);
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [contests, setContests] = useState<ContestEntry[]>(initialContests);
-
-  const handleLogout = () => {
-    router.push('/');
-  };
-
-  const handleStartContest = (contestId: string) => {
-    setContests(prevContests =>
-      prevContests.map(c =>
-        c.id === contestId ? { ...c, status: 'active' } : c
-      )
-    );
-    const contest = contests.find(c => c.id === contestId);
-    console.log(`Admin started contest: ${contest?.code}`);
-    toast({
-      title: "Contest Started",
-      description: `Contest ${contest?.code} is now active.`,
-      variant: "default",
-      duration: 3000,
-    });
-  };
-
-  const handleStopContest = (contestId: string) => {
-    setContests(prevContests =>
-      prevContests.map(c =>
-        c.id === contestId ? { ...c, status: 'finished' } : c
-      )
-    );
-    const contest = contests.find(c => c.id === contestId);
-    console.log(`Admin stopped contest: ${contest?.code}`);
-    toast({
-      title: "Contest Finished",
-      description: `Contest ${contest?.code} has been marked as finished.`,
-      variant: "default",
-      duration: 3000,
-    });
-  };
-
-
-  const getStatusColor = (status: ContestEntry["status"]) => {
-    if (status === 'active') return 'text-success';
-    if (status === 'pending') return 'text-yellow-600';
-    if (status === 'finished') return 'text-muted-foreground';
-    return '';
+  // Mock data for dashboard stats
+  const stats = {
+    totalContests: "5", // Mocked
+    activeContests: "2", // Mocked
+    totalUsers: "150",   // Mocked (e.g. total registered users or participants across all time)
+    questionsInBank: "75" // Mocked
   };
 
   return (
-    <div className="space-y-8 p-2 sm:p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl sm:text-4xl font-bold text-primary font-headline">
-          Admin Dashboard
-        </h1>
-        <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
-          Logout
-        </Button>
+    <div className="space-y-8">
+      <h1 className="text-4xl font-bold text-primary font-headline tracking-tight">
+        Admin Dashboard
+      </h1>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="Total Contests" 
+          value={stats.totalContests} 
+          icon={ListChecks}
+          description="Number of all created contests."
+          link="/admin/contests"
+          linkText="Manage Contests"
+        />
+        <StatCard 
+          title="Active Contests" 
+          value={stats.activeContests} 
+          icon={ListChecks} // Could use a different icon for active, e.g., PlayCircle
+          description="Contests currently running."
+        />
+        <StatCard 
+          title="Total Users" 
+          value={stats.totalUsers} 
+          icon={Users}
+          description="Overall user engagement."
+          link="/admin/users"
+          linkText="View Users"
+        />
+        <StatCard 
+          title="Question Bank" 
+          value={stats.questionsInBank} 
+          icon={ClipboardEdit}
+          description="Total questions available."
+          link="/admin/questions"
+          linkText="Manage Questions"
+        />
       </div>
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-semibold font-headline text-primary">Contest Management</CardTitle>
+          <CardTitle className="text-2xl font-semibold font-headline text-primary">Quick Actions</CardTitle>
+          <CardDescription>
+            <p>Access key administrative functions quickly.</p>
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Link href="/admin/contests/new" passHref>
-            <Button className="bg-success text-success-foreground hover:bg-success/90 w-full sm:w-auto">
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Generate New Contest
+            <Button size="lg" className="w-full h-16 text-lg bg-success hover:bg-success/90 text-success-foreground">
+              <ListChecks className="mr-2 h-6 w-6" /> Generate New Contest
             </Button>
           </Link>
-          
-          {contests.length > 0 ? (
-            <div className="space-y-3">
-              {contests.map((contest) => (
-                <div key={contest.id} className="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-card hover:shadow-md transition-shadow">
-                  <div>
-                    <p className="font-semibold text-lg">Code: <span className="font-mono text-accent">{contest.code}</span></p>
-                    <p className={`text-sm font-medium ${getStatusColor(contest.status)}`}>
-                      Status: <span className="capitalize">{contest.status}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">Created: {contest.created}</p>
-                  </div>
-                  <div className="flex space-x-2 mt-2 sm:mt-0">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-success hover:bg-success/10 hover:text-success disabled:text-muted-foreground disabled:hover:bg-transparent" 
-                      aria-label="Start contest"
-                      onClick={() => handleStartContest(contest.id)}
-                      disabled={contest.status !== 'pending'}
-                    >
-                      <Play className="h-5 w-5" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive disabled:text-muted-foreground disabled:hover:bg-transparent" 
-                      aria-label="Stop contest"
-                      onClick={() => handleStopContest(contest.id)}
-                      disabled={contest.status !== 'active'}
-                    >
-                      <Square className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">No contests available.</p>
-          )}
+          <Link href="/admin/questions/new" passHref>
+            <Button size="lg" className="w-full h-16 text-lg">
+              <ClipboardEdit className="mr-2 h-6 w-6" /> Add New Question
+            </Button>
+          </Link>
+          <Link href="/admin/settings" passHref>
+            <Button variant="outline" size="lg" className="w-full h-16 text-lg">
+              <SlidersHorizontal className="mr-2 h-6 w-6" /> System Settings
+            </Button>
+          </Link>
         </CardContent>
       </Card>
-
+      
+      {/* Placeholder for recent activity or important notices */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-semibold font-headline text-primary">Question Management</CardTitle>
+          <CardTitle className="text-2xl font-semibold font-headline text-primary">Recent Activity</CardTitle>
+           <CardDescription>
+            <p>Overview of recent admin actions or system events (placeholder).</p>
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Button variant="default" className="w-full sm:w-auto">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Add New Question
-          </Button>
-
-          {mockQuestions.length > 0 ? (
-            <div className="space-y-3">
-              {mockQuestions.map((question) => (
-                <div key={question.id} className="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-card hover:shadow-md transition-shadow">
-                  <div>
-                    <p className="font-semibold text-md">{question.text}</p>
-                    <p className="text-sm text-muted-foreground">Answer: {question.answer}</p>
-                  </div>
-                  <div className="flex space-x-2 mt-2 sm:mt-0">
-                    <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10 hover:text-primary" aria-label="Edit question">
-                      <Edit2 className="h-5 w-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive" aria-label="Delete question">
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-             <p className="text-muted-foreground">No questions available. Add questions to get started.</p>
-          )}
+        <CardContent>
+          <p className="text-muted-foreground">No recent activity to display.</p>
         </CardContent>
       </Card>
+
     </div>
   );
 }
-
