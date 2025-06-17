@@ -40,8 +40,10 @@ export default function LoginPage() {
 
   const handleEnterContest = (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentUsername.trim() && contestCode.trim()) {
-      setUserNameAndCode(currentUsername, contestCode);
+    const finalUsername = currentUsername.trim();
+    const finalContestCode = contestCode.trim(); // Trim whitespace here
+    if (finalUsername && finalContestCode) {
+      setUserNameAndCode(finalUsername, finalContestCode);
     }
   };
 
@@ -121,7 +123,7 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="flex space-x-2">
-        <Button variant="outline" onClick={() => { setShowContestCodeInput(false); setCurrentUsername(''); }} className="w-1/3 h-12">
+        <Button variant="outline" onClick={() => { setShowContestCodeInput(false); setCurrentUsername(''); setContestCode(''); }} className="w-1/3 h-12">
           Back
         </Button>
         <Button type="submit" className="w-2/3 h-12 text-lg" disabled={!contestCode.trim()}>
