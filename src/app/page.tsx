@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { QuizMasterLogo } from '@/components/icons/QuizMasterLogo';
 import { useQuiz } from '@/contexts/QuizContext';
-import { User, KeyRound } from 'lucide-react';
+import { User, KeyRound, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const [currentUsername, setCurrentUsername] = useState('');
@@ -37,6 +38,10 @@ export default function LoginPage() {
     }
   };
 
+  const handleAdminLogin = () => {
+    router.push('/admin');
+  };
+
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
       <Card className="w-full max-w-md shadow-2xl">
@@ -45,7 +50,7 @@ export default function LoginPage() {
             <QuizMasterLogo />
           </div>
           <CardTitle className="font-headline text-3xl">Welcome!</CardTitle>
-          <CardDescription>Join a quiz and test your knowledge.</CardDescription>
+          <CardDescription>Join a quiz and test your knowledge, or manage contests as an Admin.</CardDescription>
         </CardHeader>
         <CardContent>
           {!showContestCodeInput ? (
@@ -69,6 +74,10 @@ export default function LoginPage() {
               <Button type="submit" className="w-full h-12 text-lg" disabled={!currentUsername.trim()}>
                 Join Contest
               </Button>
+              <Button variant="outline" onClick={handleAdminLogin} className="w-full h-12 text-lg mt-2">
+                <ShieldCheck className="mr-2 h-5 w-5" />
+                Admin Login
+              </Button>
             </form>
           ) : (
             <form onSubmit={handleEnterContest} className="space-y-6">
@@ -87,7 +96,7 @@ export default function LoginPage() {
                     value={contestCode}
                     onChange={(e) => setContestCode(e.target.value.toUpperCase())}
                     required
-                    maxLength={10} 
+                    maxLength={10}
                     className="pl-10 text-base h-12 rounded-md tracking-wider"
                     aria-label="Contest Code"
                   />
