@@ -17,13 +17,11 @@ export default function NewContestPage() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // In a real app, you would collect form data and send it to a backend.
     toast({
       title: "Contest Generation Initiated",
       description: "Your new contest is being created (mocked).",
       variant: "default",
     });
-    // For now, redirect back to contests page
     router.push("/admin/contests");
   };
 
@@ -38,7 +36,7 @@ export default function NewContestPage() {
         <h1 className="text-3xl font-bold text-primary font-headline">Generate New Contest</h1>
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-xl font-semibold">Contest Details</CardTitle>
           <CardDescription>
@@ -57,8 +55,7 @@ export default function NewContestPage() {
               <Textarea id="contestDescription" placeholder="A brief description of the contest." />
             </div>
             
-            {/* Placeholder for more advanced settings like duration, question selection method etc. */}
-            <Card>
+            <Card className="hover:shadow-md transition-shadow duration-300">
               <CardHeader>
                 <CardTitle className="text-lg">Advanced Settings (Placeholder)</CardTitle>
                  <CardDescription><p>Future options for question selection, duration, etc.</p></CardDescription>

@@ -28,7 +28,7 @@ export default function NewQuestionPage() {
   const [correctAnswerId, setCorrectAnswerId] = useState<string | null>(null);
 
   const handleAddOption = () => {
-    if (options.length < 6) { // Limit options for simplicity
+    if (options.length < 6) { 
       setOptions([...options, { id: `option-${Date.now()}-${options.length + 1}`, text: "" }]);
     } else {
       toast({ title: "Option Limit Reached", description: "You can add a maximum of 6 options.", variant: "default" });
@@ -36,7 +36,7 @@ export default function NewQuestionPage() {
   };
 
   const handleRemoveOption = (id: string) => {
-    if (options.length > 2) { // Minimum 2 options
+    if (options.length > 2) { 
       setOptions(options.filter(option => option.id !== id));
       if (correctAnswerId === id) {
         setCorrectAnswerId(null);
@@ -60,7 +60,6 @@ export default function NewQuestionPage() {
         toast({ title: "Incomplete Form", description: "Please fill all fields and select a correct answer.", variant: "destructive"});
         return;
     }
-    // In a real app, you would collect form data and send it to a backend.
     toast({
       title: "Question Created",
       description: "New question has been added to the bank (mocked).",
@@ -80,7 +79,7 @@ export default function NewQuestionPage() {
         <h1 className="text-3xl font-bold text-primary font-headline">Add New Question</h1>
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-xl font-semibold">Question Details</CardTitle>
            <CardDescription><p>Define the question, its options, and mark the correct answer.</p></CardDescription>

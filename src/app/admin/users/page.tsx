@@ -9,7 +9,7 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-primary font-headline">User Management</h1>
 
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-xl font-semibold flex items-center">
             <Users className="mr-3 h-6 w-6 text-primary" />

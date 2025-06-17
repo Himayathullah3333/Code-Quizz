@@ -12,7 +12,7 @@ interface ParticipantListProps {
 
 export function ParticipantList({ participants, currentUserUsername }: ParticipantListProps) {
   return (
-    <Card className="w-full shadow-lg">
+    <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-xl font-headline">
           <Users className="h-6 w-6 text-primary" />

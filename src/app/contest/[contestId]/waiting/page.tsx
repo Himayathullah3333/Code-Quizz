@@ -53,7 +53,6 @@ export default function WaitingRoomPage() {
       }
     };
 
-    // Check on mount
     checkAdminStatusAndStart();
 
     const handleStorageChange = (event: StorageEvent) => {
@@ -89,7 +88,7 @@ export default function WaitingRoomPage() {
 
   return (
     <div className="flex flex-col items-center justify-center space-y-8 min-h-[calc(100vh-15rem)] animate-fadeIn">
-      <Card className="w-full max-w-lg text-center shadow-xl">
+      <Card className="w-full max-w-lg text-center shadow-xl hover:shadow-2xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="font-headline text-3xl text-primary">Contest Waiting Room</CardTitle>
           <CardDescription className="text-lg">

@@ -11,7 +11,7 @@ export default function ContestLayout({ children }: { children: ReactNode }) {
   const { username, resetQuiz } = useQuiz();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-accent/5">
+    <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" aria-label="Go to homepage">
@@ -36,7 +36,7 @@ export default function ContestLayout({ children }: { children: ReactNode }) {
       <main className="flex-grow container mx-auto px-4 py-8">
         {children}
       </main>
-      <footer className="py-6 text-center text-sm text-muted-foreground border-t">
+      <footer className="py-6 text-center text-sm text-muted-foreground border-t border-border/40 bg-background/80">
         © {new Date().getFullYear()} QuizMaster. All rights reserved.
       </footer>
     </div>

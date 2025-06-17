@@ -14,7 +14,7 @@ interface QuestionCardProps {
   selectedOptionIndex: number | null;
   onSelectOption: (optionIndex: number) => void;
   onSubmitAnswer: () => void;
-  isSubmitting: boolean; // To disable button during processing
+  isSubmitting: boolean; 
 }
 
 export function QuestionCard({
@@ -28,7 +28,7 @@ export function QuestionCard({
   const альфа = ['A', 'B', 'C', 'D'];
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-xl animate-fadeIn">
+    <Card className="w-full max-w-2xl mx-auto shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-fadeIn">
       <CardHeader>
         <CardTitle className="font-headline text-2xl md:text-3xl leading-tight text-center">
           {question.questionText}

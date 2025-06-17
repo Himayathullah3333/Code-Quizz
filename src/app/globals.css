@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 210 40% 98%; /* Cooler light gray */
@@ -43,7 +39,12 @@ body {
     --sidebar-accent-foreground: 205 70% 42%;
     --sidebar-border: 210 20% 88%;
     --sidebar-ring: 205 79% 46%;
+
+    --body-gradient-start-light: 203 100% 93%; /* sky-100 like hsl(203, 100%, 93%) */
+    --body-gradient-middle-light: 231 100% 93%; /* indigo-100 like hsl(231, 100%, 93%) */
+    --body-gradient-end-light: 275 100% 95%; /* purple-100 like hsl(275, 100%, 95%) */
   }
+
   .dark {
     --background: 222 47% 11%; /* Dark blue-gray */
     --foreground: 210 40% 98%;
@@ -79,6 +80,10 @@ body {
     --sidebar-accent-foreground: 210 40% 96%;
     --sidebar-border: 217 30% 20%;
     --sidebar-ring: 205 75% 55%;
+
+    --body-gradient-start-dark: 215 28% 20%; /* slate-800 like hsl(215, 28%, 20%) */
+    --body-gradient-middle-dark: 222 47% 25%; /* blue-900 like hsl(222, 47%, 25%) */
+    --body-gradient-end-dark: 239 47% 28%; /* indigo-900 like hsl(239, 47%, 28%) */
   }
 }
 
@@ -87,7 +92,7 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground bg-gradient-to-br from-[hsl(var(--body-gradient-start-light))] via-[hsl(var(--body-gradient-middle-light))] to-[hsl(var(--body-gradient-end-light))] dark:from-[hsl(var(--body-gradient-start-dark))] dark:via-[hsl(var(--body-gradient-middle-dark))] dark:to-[hsl(var(--body-gradient-end-dark))];
   }
 }
 

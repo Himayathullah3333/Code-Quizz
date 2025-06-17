@@ -26,7 +26,7 @@ interface QuestionEntry {
   text: string;
   category: string;
   optionsCount: number;
-  correctAnswerPreview: string; // e.g., "Option B" or the text of the answer
+  correctAnswerPreview: string; 
 }
 
 const initialQuestions: QuestionEntry[] = [
@@ -59,7 +59,6 @@ export default function AdminQuestionsPage() {
 
   const handleDeleteQuestion = (questionId: string) => {
     const question = questions.find(q => q.id === questionId);
-    // In a real app, this would call an API
     setQuestions(prevQuestions => prevQuestions.filter(q => q.id !== questionId));
     toast({
       title: "Question Deleted",
@@ -80,7 +79,7 @@ export default function AdminQuestionsPage() {
         </Link>
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-xl font-semibold">All Questions</CardTitle>
            <CardDescription>

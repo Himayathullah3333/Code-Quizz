@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-secondary/30 via-background to-muted/30">
+    <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="container flex h-20 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/admin" aria-label="Go to admin dashboard">

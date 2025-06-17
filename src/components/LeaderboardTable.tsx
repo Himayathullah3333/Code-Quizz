@@ -27,7 +27,7 @@ export function LeaderboardTable({ participants, currentUserUsername, isFinal = 
   };
 
   return (
-    <Card className="w-full max-w-xl mx-auto shadow-xl animate-fadeIn">
+    <Card className="w-full max-w-xl mx-auto shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-fadeIn">
       <CardHeader className="text-center">
         <CardTitle className="font-headline text-3xl text-primary">
           {title ? title : (isFinal ? "Final Leaderboard" : "Current Standings")}

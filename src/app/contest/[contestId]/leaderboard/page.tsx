@@ -31,7 +31,7 @@ export default function LeaderboardPage() {
       if (contestId) {
         if (quizStatus === 'WAITING_ROOM') router.push(`/contest/${contestId}/waiting`);
         else if (quizStatus === 'QUESTION_DISPLAY' || quizStatus === 'ANSWER_FEEDBACK' || quizStatus === 'INTERIM_LEADERBOARD' ) router.push(`/contest/${contestId}/quiz`);
-        else router.push('/'); // Should not happen, but fallback
+        else router.push('/'); 
       } else {
          router.push('/'); 
       }
@@ -69,7 +69,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="flex flex-col items-center space-y-8 animate-fadeIn">
-      <Card className="w-full max-w-2xl text-center shadow-xl">
+      <Card className="w-full max-w-2xl text-center shadow-xl hover:shadow-2xl transition-shadow duration-300">
          <CardHeader>
           <CardTitle className="font-headline text-4xl text-accent">Quiz Complete!</CardTitle>
           {currentUserDetails && (

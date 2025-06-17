@@ -7,14 +7,13 @@ import { cn } from '@/lib/utils';
 interface AnswerFeedbackProps {
   isCorrect: boolean | null;
   correctAnswer: string | null;
-  selectedAnswerText?: string | null; // Optional: text of the user's selected answer
+  selectedAnswerText?: string | null; 
 }
 
 export function AnswerFeedback({ isCorrect, correctAnswer, selectedAnswerText }: AnswerFeedbackProps) {
   if (isCorrect === null || correctAnswer === null) {
-    // This case should ideally not happen if feedback is only shown after an answer.
     return (
-       <Card className="w-full max-w-md mx-auto shadow-lg animate-fadeIn border-yellow-500 bg-yellow-50">
+       <Card className="w-full max-w-md mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn border-yellow-500 bg-yellow-50">
         <CardHeader className="items-center text-center">
             <Info className="h-12 w-12 text-yellow-500 mb-2" />
             <CardTitle className="font-headline text-2xl text-yellow-700">Processing...</CardTitle>
@@ -31,7 +30,7 @@ export function AnswerFeedback({ isCorrect, correctAnswer, selectedAnswerText }:
   return (
     <Card 
       className={cn(
-        "w-full max-w-md mx-auto shadow-xl",
+        "w-full max-w-md mx-auto shadow-xl hover:shadow-2xl transition-shadow duration-300",
         animationClass,
         isCorrect ? "border-success bg-success/10" : "border-destructive bg-destructive/10"
       )}

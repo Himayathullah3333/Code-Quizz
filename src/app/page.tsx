@@ -41,7 +41,7 @@ export default function LoginPage() {
   const handleEnterContest = (e: React.FormEvent) => {
     e.preventDefault();
     const finalUsername = currentUsername.trim();
-    const finalContestCode = contestCode.trim(); // Trim whitespace here
+    const finalContestCode = contestCode.trim().toUpperCase(); 
     if (finalUsername && finalContestCode) {
       setUserNameAndCode(finalUsername, finalContestCode);
     }
@@ -54,7 +54,7 @@ export default function LoginPage() {
   
   const handleAdminLoginAttempt = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminPassword === 'admin123') { // Hardcoded password
+    if (adminPassword === 'admin123') { 
       toast({
         title: "Admin Login Successful",
         description: "Redirecting to admin panel...",
@@ -172,8 +172,8 @@ export default function LoginPage() {
 
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
-      <Card className="w-full max-w-md shadow-2xl border-border/60">
+    <main className="flex flex-col items-center justify-center min-h-screen p-4">
+      <Card className="w-full max-w-md shadow-2xl border-border/60 hover:shadow-2xl transition-shadow duration-300">
         <CardHeader className="text-center">
           <div className="mx-auto mb-6">
             <QuizMasterLogo />

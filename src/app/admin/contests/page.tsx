@@ -33,7 +33,7 @@ interface ContestEntry {
 
 const initialContests: ContestEntry[] = [
   {
-    id: "CONTEST123", // Ensure this matches mockContest.id for localStorage key consistency
+    id: "CONTEST123", 
     name: "Tech Trivia Night",
     code: "3PHGAM",
     status: "pending",
@@ -123,7 +123,7 @@ export default function AdminContestsPage() {
         </Link>
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-xl font-semibold">All Contests</CardTitle>
           <CardDescription>

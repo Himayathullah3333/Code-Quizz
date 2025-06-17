@@ -39,12 +39,11 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, descripti
 );
 
 export default function AdminDashboardPage() {
-  // Mock data for dashboard stats
   const stats = {
-    totalContests: "5", // Mocked
-    activeContests: "2", // Mocked
-    totalUsers: "150",   // Mocked (e.g. total registered users or participants across all time)
-    questionsInBank: "75" // Mocked
+    totalContests: "5", 
+    activeContests: "2", 
+    totalUsers: "150",   
+    questionsInBank: "75" 
   };
 
   return (
@@ -65,7 +64,7 @@ export default function AdminDashboardPage() {
         <StatCard 
           title="Active Contests" 
           value={stats.activeContests} 
-          icon={ListChecks} // Could use a different icon for active, e.g., PlayCircle
+          icon={ListChecks} 
           description="Contests currently running."
         />
         <StatCard 
@@ -86,7 +85,7 @@ export default function AdminDashboardPage() {
         />
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold font-headline text-primary">Quick Actions</CardTitle>
           <CardDescription>
@@ -112,8 +111,7 @@ export default function AdminDashboardPage() {
         </CardContent>
       </Card>
       
-      {/* Placeholder for recent activity or important notices */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold font-headline text-primary">Recent Activity</CardTitle>
            <CardDescription>
